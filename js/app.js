@@ -81,6 +81,9 @@
     qlist = pool.slice(0, Math.min(num, pool.length));
     idx = 0; score = 0; selected = null; answers = new Array(qlist.length).fill(null);
     totalSpan.textContent = qlist.length;
+    // init progress bar
+    const fill = document.getElementById('progress-fill');
+    if(fill) fill.style.width = '0%';
     show(quizSection); hide(resultSection);
     renderQuestion();
   }
