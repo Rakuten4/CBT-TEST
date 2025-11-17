@@ -1,0 +1,11 @@
+{
+  "name": "cbt-practice",
+  "version": "1.0.0",
+  "description": "Offline CBT practice app (WAEC / JAMB / NECO / GCE)",
+  "main": "index.html",
+  "author": "",
+  "license": "MIT",
+  "scripts": {
+    "start": "npx http-server -c-1 . -p 8000"
+  }
+}

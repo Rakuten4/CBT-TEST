@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>CBT Practice — WAEC / JAMB / NECO / GCE</title>
+		<link rel="stylesheet" href="css/style.css" />
+	</head>
+	<body>
+		<header class="header">
+			<h1>CBT Practice — WAEC · JAMB · NECO · GCE</h1>
+			<p class="lead">Practice multiple-choice questions offline to test your readiness before the exam.</p>
+		</header>
+
+		<main class="main">
+			<section class="controls">
+				<label for="exam-select">Choose exam:</label>
+				<select id="exam-select">
+					<option value="waec">WAEC</option>
+					<option value="jamb">JAMB</option>
+					<option value="neco">NECO</option>
+					<option value="gce">GCE</option>
+				</select>
+
+			<label for="num-questions">Number of questions (minimum 50 for full practice):</label>
+			<input id="num-questions" type="number" min="50" max="200" value="50" />
+
+						<button id="start-btn" class="btn">Start Quiz</button>
+						<button id="admin-btn" class="btn alt">Admin</button>
+			</section>
+
+			<section id="quiz" class="quiz hidden">
+				<div id="progress" class="progress">Question <span id="current">0</span> / <span id="total">0</span></div>
+				<div id="question-card" class="card">
+					<div id="question-text" class="question-text"></div>
+					<div id="options" class="options"></div>
+				</div>
+				<div class="quiz-controls">
+					<button id="next-btn" class="btn" disabled>Next</button>
+					<button id="quit-btn" class="btn alt">Quit</button>
+				</div>
+			</section>
+
+			<section id="result" class="result hidden">
+				<h2>Your score</h2>
+				<p id="score-text"></p>
+				<button id="retry-btn" class="btn">Try another quiz</button>
+						<div id="review-list" class="card"></div>
+			</section>
+
+					<section id="submit" class="card hidden">
+						<h2>Submit Quiz</h2>
+						<p>You have completed the quiz. Click <strong>Submit &amp; Reveal Answers</strong> to view the correct answers and your responses. Once submitted, answers will be revealed.</p>
+						<div class="admin-controls">
+							<button id="submit-btn" class="btn">Submit &amp; Reveal Answers</button>
+							<button id="submit-cancel" class="btn alt">Return to Last Question</button>
+						</div>
+					</section>
+
+					<section id="admin" class="admin hidden card">
+						<h2>Admin — Manage Questions</h2>
+						<label>Exam:
+							<select id="admin-exam-select">
+								<option value="waec">WAEC</option>
+								<option value="jamb">JAMB</option>
+								<option value="neco">NECO</option>
+								<option value="gce">GCE</option>
+							</select>
+						</label>
+
+						<div id="admin-list" class="admin-list"></div>
+
+						<h3>Add / Edit Question</h3>
+						<textarea id="admin-q" placeholder="Question text"></textarea>
+						<div id="admin-options" class="admin-options">
+							<input class="admin-opt" data-opt="0" placeholder="Option A" />
+							<input class="admin-opt" data-opt="1" placeholder="Option B" />
+							<input class="admin-opt" data-opt="2" placeholder="Option C" />
+							<input class="admin-opt" data-opt="3" placeholder="Option D" />
+						</div>
+						<label>Correct answer:
+							<select id="admin-answer">
+								<option value="0">A</option>
+								<option value="1">B</option>
+								<option value="2">C</option>
+								<option value="3">D</option>
+							</select>
+						</label>
+
+						<div class="admin-controls">
+							<button id="admin-add" class="btn">Add</button>
+							<button id="admin-save" class="btn">Save</button>
+							<button id="admin-cancel" class="btn alt">Close</button>
+						</div>
+						<p class="note">Note: Changes made in the browser are saved to your browser's <code>localStorage</code>. To persist edits across machines, edit the <code>data/questions.json</code> file directly.</p>
+					</section>
+		</main>
+
+		<footer class="footer">
+			<small>Works offline after first load. To enable service-worker offline caching, serve via a local HTTP server (see README).</small>
+			<div id="sw-status" class="sw-status">SW: unknown</div>
+		</footer>
+
+		<script src="js/app.js" defer></script>
+	</body>
+</html>
+
