@@ -275,13 +275,8 @@
   // init
   (async function init(){
     await loadData();
-    // register service worker for offline caching (regular browser)
-    try{
-      if('serviceWorker' in navigator){
-        navigator.serviceWorker.register('sw.js').then(reg=>{ swStatus.textContent = 'SW: registered'; })
-        .catch(err=>{ swStatus.textContent = 'SW: not registered'; console.warn('SW registration failed', err); });
-      } else swStatus.textContent = 'SW: unsupported';
-    }catch(e){ console.warn('SW registration check failed', e); swStatus.textContent = 'SW: error'; }
+    // Service worker removed: this project is intended to be hosted on a web server.
+    try{ swStatus.textContent = 'SW: removed (hosted web app)'; }catch(e){ }
   })();
 
 })();

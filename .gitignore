@@ -1,0 +1,12 @@
+node_modules/
+dist/
+standalone_zip_temp/
+*.zip
+.user_data/
+/.vscode/
+*.log
+/.DS_Store
+
+# Ignore any packaged electron binaries
+node_modules/**/electron*/
+node_modules/**/electron*/**
