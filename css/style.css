@@ -35,6 +35,17 @@ select,input[type=number]{padding:10px;border-radius:10px;border:1px solid rgba(
   background: #ffffff;
   color: #000000;
 }
+
+/* Make exam dropdowns black text on white background too */
+#exam-select, #admin-exam-select {
+  background: #ffffff;
+  color: #000000;
+  border: 1px solid rgba(0,0,0,0.12);
+}
+#exam-select option, #admin-exam-select option {
+  background: #ffffff;
+  color: #000000;
+}
 .btn{background:linear-gradient(180deg,var(--accent),var(--accent-2));color:#fff;border:none;padding:10px 14px;border-radius:10px;cursor:pointer;box-shadow:0 6px 18px rgba(58,107,255,0.12);font-weight:600}
 .btn.alt{background:transparent;color:var(--accent);border:1px solid rgba(255,255,255,0.06)}
 .btn:disabled{opacity:.5;cursor:not-allowed}
