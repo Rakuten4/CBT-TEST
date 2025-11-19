@@ -24,6 +24,17 @@ body{
 .controls{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:18px 0}
 label{font-size:13px;color:var(--muted)}
 select,input[type=number]{padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:inherit}
+
+/* Subject selects (and their options) should show black text on white background */
+#subject-select, #admin-subject {
+  background: #ffffff;
+  color: #000000;
+  border: 1px solid rgba(0,0,0,0.12);
+}
+#subject-select option, #admin-subject option {
+  background: #ffffff;
+  color: #000000;
+}
 .btn{background:linear-gradient(180deg,var(--accent),var(--accent-2));color:#fff;border:none;padding:10px 14px;border-radius:10px;cursor:pointer;box-shadow:0 6px 18px rgba(58,107,255,0.12);font-weight:600}
 .btn.alt{background:transparent;color:var(--accent);border:1px solid rgba(255,255,255,0.06)}
 .btn:disabled{opacity:.5;cursor:not-allowed}
