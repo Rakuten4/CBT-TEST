@@ -24,12 +24,16 @@
   const adminQ = el('admin-q');
   const adminOpts = Array.from(document.getElementsByClassName('admin-opt'));
   const adminAnswer = el('admin-answer');
+  const adminSubject = el('admin-subject');
+  const adminDifficulty = el('admin-difficulty');
   const adminAdd = el('admin-add');
   const adminSave = el('admin-save');
   const adminCancel = el('admin-cancel');
   const submitSection = el('submit');
   const submitBtn = el('submit-btn');
   const submitCancel = el('submit-cancel');
+  const subjectContainer = el('subject-container');
+  const subjectSelect = el('subject-select');
 
   let data = null;
   let qlist = [];
@@ -72,14 +76,53 @@
 
   function startQuiz(){
     const exam = examSelect.value;
-    const pool = (data && data[exam]) ? data[exam].slice() : [];
-    if(pool.length===0){alert('No questions available for this exam');return}
+    let pool = (data && data[exam]) ? data[exam].slice() : [];
+    if(pool.length===0){ alert('No questions available for this exam'); return }
+    // apply subject filter if selected (subjects require tagging in questions.json or via admin)
+    const subject = (subjectSelect && subjectSelect.value) ? subjectSelect.value : 'all';
+    if(subject && subject !== 'all'){
+      const subjPool = pool.filter(q => q.subject && String(q.subject).toLowerCase() === String(subject).toLowerCase());
+      if(subjPool.length > 0) pool = subjPool; else {
+        // no tagged questions for subject — fallback to full pool but inform user
+        console.warn('No questions tagged for subject', subject, '— using full exam pool');
+        // optionally: alert('No subject-tagged questions found; using full exam pool.');
+      }
+    }
     shuffle(pool);
-    // Enforce at least 50 questions for practice if available
-    let num;
-    if(pool.length >= 50) num = 50; else { num = pool.length; alert('Only ' + pool.length + ' questions available for this exam.'); }
-    qlist = pool.slice(0, Math.min(num, pool.length));
-    idx = 0; score = 0; selected = null; answers = new Array(qlist.length).fill(null);
+    // Fixed question limit requested: 100
+    const totalWanted = 100;
+    const total = Math.min(totalWanted, pool.length);
+    // Difficulty split: 80% tough, 20% easy
+    const toughCount = Math.round(total * 0.8);
+    const easyCount = total - toughCount;
+    // Partition by difficulty tags if present
+    const toughPool = pool.filter(q => q.difficulty && String(q.difficulty).toLowerCase().startsWith('t'));
+    const easyPool = pool.filter(q => q.difficulty && String(q.difficulty).toLowerCase().startsWith('e'));
+    let selectedList = [];
+    // take from tagged tough first
+    shuffle(toughPool);
+    shuffle(easyPool);
+    const take = (arr, n) => arr.slice(0, Math.max(0, Math.min(n, arr.length)));
+    selectedList = selectedList.concat(take(toughPool, toughCount));
+    // if not enough tough, fill from untagged/other
+    let remainingTough = toughCount - selectedList.length;
+    if(remainingTough > 0){
+      const other = pool.filter(q => !selectedList.includes(q) && !easyPool.includes(q));
+      shuffle(other);
+      selectedList = selectedList.concat(take(other, remainingTough));
+    }
+    // take easy
+    selectedList = selectedList.concat(take(easyPool, easyCount));
+    // if still short, fill from remaining pool
+    let remaining = total - selectedList.length;
+    if(remaining > 0){
+      const other = pool.filter(q => !selectedList.includes(q));
+      shuffle(other);
+      selectedList = selectedList.concat(take(other, remaining));
+    }
+    shuffle(selectedList);
+    qlist = selectedList.slice(0, total);
+  idx = 0; score = 0; selected = null; answers = new Array(qlist.length).fill(null);
     totalSpan.textContent = qlist.length;
     // init progress bar
     const fill = document.getElementById('progress-fill');
@@ -225,6 +268,9 @@
     adminQ.value = q.q || '';
     Array.from(adminOpts).forEach((inp,ii)=>{ inp.value = q.options[ii] || ''; });
     adminAnswer.value = (typeof q.answer === 'number') ? String(q.answer) : '0';
+    // populate subject and difficulty if available
+    try{ adminSubject.value = q.subject || ''; }catch(e){}
+    try{ adminDifficulty.value = q.difficulty || ''; }catch(e){}
     editingIndex = { exam, index };
   }
 
@@ -232,6 +278,8 @@
     adminQ.value = '';
     adminOpts.forEach(i=>i.value='');
     adminAnswer.value = '0';
+    try{ adminSubject.value = ''; }catch(e){}
+    try{ adminDifficulty.value = ''; }catch(e){}
     editingIndex = null;
   }
 
@@ -243,7 +291,11 @@
     if(opts.length < 2){ alert('Provide at least two options'); return; }
     const ans = Number(adminAnswer.value) || 0;
     data[exam] = data[exam] || [];
-    data[exam].push({ id: Date.now(), q: qtext, options: opts, answer: ans });
+    const newQ = { id: Date.now(), q: qtext, options: opts, answer: ans };
+    // include subject/difficulty if provided in admin form
+    try{ const s = (adminSubject && adminSubject.value) ? adminSubject.value : ''; if(s) newQ.subject = s; }catch(e){}
+    try{ const d = (adminDifficulty && adminDifficulty.value) ? adminDifficulty.value : ''; if(d) newQ.difficulty = d; }catch(e){}
+    data[exam].push(newQ);
     persistData();
     renderAdminList();
     clearAdminForm();
@@ -256,7 +308,10 @@
     const opts = adminOpts.map(i=>i.value.trim()).filter(v=>v.length>0);
     const ans = Number(adminAnswer.value) || 0;
     if(!qtext || opts.length<2){ alert('Question and at least two options required'); return; }
-    data[exam][index] = { id: data[exam][index].id || Date.now(), q: qtext, options: opts, answer: ans };
+    const updated = { id: data[exam][index].id || Date.now(), q: qtext, options: opts, answer: ans };
+    try{ const s = (adminSubject && adminSubject.value) ? adminSubject.value : ''; if(s) updated.subject = s; }catch(e){}
+    try{ const d = (adminDifficulty && adminDifficulty.value) ? adminDifficulty.value : ''; if(d) updated.difficulty = d; }catch(e){}
+    data[exam][index] = updated;
     persistData();
     renderAdminList();
     clearAdminForm();
@@ -278,6 +333,12 @@
   // init
   (async function init(){
     await loadData();
+    // show subject selector once exam is chosen (subject selector is optional)
+    try{
+      examSelect.addEventListener('change', ()=>{ if(subjectContainer) subjectContainer.classList.remove('hidden'); });
+      // if present, show subject container initially
+      if(subjectContainer) subjectContainer.classList.remove('hidden');
+    }catch(e){}
     // Service worker removed: this project is intended to be hosted on a web server.
     try{ swStatus.textContent = 'SW: removed (hosted web app)'; }catch(e){ }
   })();

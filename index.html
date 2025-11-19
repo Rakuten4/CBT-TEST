@@ -22,8 +22,27 @@
 					<option value="gce">GCE</option>
 				</select>
 
-			<label for="num-questions">Number of questions (minimum 50 for full practice):</label>
-			<input id="num-questions" type="number" min="50" max="200" value="50" />
+				<!-- Subject selection appears after choosing an exam -->
+				<div id="subject-container" class="subject-container hidden">
+					<label for="subject-select">Choose subject:</label>
+					<select id="subject-select">
+						<option value="all">All subjects</option>
+						<option value="maths">Mathematics</option>
+						<option value="english">English</option>
+						<option value="physics">Physics</option>
+						<option value="chemistry">Chemistry</option>
+						<option value="biology">Biology</option>
+						<option value="government">Government</option>
+						<option value="literature">Literature in English</option>
+						<option value="crs">CRS</option>
+						<option value="accounting">Accounting</option>
+						<option value="commerce">Commerce</option>
+						<option value="business">Business Studies</option>
+					</select>
+				</div>
+
+			<label for="num-questions">Number of questions (fixed):</label>
+			<input id="num-questions" type="number" min="100" max="100" value="100" disabled />
 
 						<button id="start-btn" class="btn">Start Quiz</button>
 						<button id="admin-btn" class="btn alt">Admin</button>
@@ -81,6 +100,29 @@
 							<input class="admin-opt" data-opt="2" placeholder="Option C" />
 							<input class="admin-opt" data-opt="3" placeholder="Option D" />
 						</div>
+						<label>Subject:
+							<select id="admin-subject">
+								<option value="">(none)</option>
+								<option value="maths">Mathematics</option>
+								<option value="english">English</option>
+								<option value="physics">Physics</option>
+								<option value="chemistry">Chemistry</option>
+								<option value="biology">Biology</option>
+								<option value="government">Government</option>
+								<option value="literature">Literature in English</option>
+								<option value="crs">CRS</option>
+								<option value="accounting">Accounting</option>
+								<option value="commerce">Commerce</option>
+								<option value="business">Business Studies</option>
+							</select>
+						</label>
+						<label>Difficulty:
+							<select id="admin-difficulty">
+								<option value="">(none)</option>
+								<option value="easy">Easy</option>
+								<option value="tough">Tough</option>
+							</select>
+						</label>
 						<label>Correct answer:
 							<select id="admin-answer">
 								<option value="0">A</option>
