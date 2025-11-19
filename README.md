@@ -20,12 +20,12 @@ Files added
 - `css/style.css` — styles
 - `js/app.js` — quiz logic and service worker registration
 - `data/questions.json` — sample questions (editable)
-- `sw.js` — service worker to cache app shell and question data
+ - `js/app.js` — quiz logic (loads `data/questions.json`, admin UI, and progress)
+ - `data/questions.json` — sample questions (editable)
 
 Notes
 
-- Service workers do not run on the `file://` protocol. If you want full offline caching, serve the folder using a small local server (see examples above) and open via `http://localhost`.
-- The `data/questions.json` file contains sample questions. You can expand or replace it with your own question bank (preserve the JSON structure).
+ - The `data/questions.json` file contains sample questions. You can expand or replace it with your own question bank (preserve the JSON structure).
 
 If you want I can: add categories/subjects, import CSV question banks, track user progress in localStorage, or add a printable summary of results.
 
