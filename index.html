@@ -45,6 +45,12 @@
 			<input id="num-questions" type="number" min="100" max="100" value="100" disabled />
 
 						<button id="start-btn" class="btn">Start Quiz</button>
+
+						<!-- Loader / progress while fetching selected exam -->
+						<div id="loader" class="loader hidden">
+							<span id="loader-text">Loading exam data…</span>
+							<progress id="load-progress" value="0" max="100"></progress>
+						</div>
 						<button id="admin-btn" class="btn alt">Admin</button>
 			</section>
 

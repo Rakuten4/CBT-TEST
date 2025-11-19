@@ -52,26 +52,67 @@
     }
   }
 
-  async function loadData(){
-    // Load question data via fetch, fallback to localStorage cache when offline
+  // Lazy-load a single exam file (data/<exam>.json) with an optional streaming progress indicator
+  async function loadExam(exam){
+    data = data || {};
+    if(data[exam]) return; // already loaded
+    const loader = el('loader');
+    const progressEl = el('load-progress');
+    const loaderText = el('loader-text');
+    if(loader) show(loader);
     try{
-      const res = await fetch('data/questions.json', {cache: 'no-store'});
-      if(!res.ok) throw new Error('Failed to load');
-      data = await res.json();
-      try{ localStorage.setItem('cbt_questions_cache', JSON.stringify(data)); }catch(e){}
-    }catch(err){
-      const cached = localStorage.getItem('cbt_questions_cache');
-      if(cached) data = JSON.parse(cached);
-      else {
-        console.error('Could not load questions:', err);
-        alert('Could not load question data. If you opened the file directly from the filesystem, try serving via a local HTTP server.');
+      // try to fetch streaming and show progress when Content-Length provided
+      const res = await fetch(`data/${exam}.json`, { cache: 'no-store' });
+      if(!res.ok) throw new Error('Failed to fetch exam data');
+      const contentLength = res.headers.get('Content-Length');
+      if(res.body && contentLength){
+        const total = parseInt(contentLength, 10);
+        const reader = res.body.getReader();
+        let received = 0; const chunks = [];
+        while(true){
+          const { done, value } = await reader.read();
+          if(done) break;
+          chunks.push(value);
+          received += value.length || value.byteLength || 0;
+          if(progressEl && total) try{ progressEl.value = Math.round((received/total)*100); }catch(e){}
+        }
+        // concat chunks
+        let size = 0; for(const c of chunks) size += c.length || c.byteLength || 0;
+        const u = new Uint8Array(size); let offset = 0;
+        for(const c of chunks){ u.set(c, offset); offset += c.length || c.byteLength || 0; }
+        const text = new TextDecoder('utf-8').decode(u);
+        const json = JSON.parse(text);
+        data[exam] = json;
+        try{ localStorage.setItem(`cbt_questions_cache_${exam}`, JSON.stringify(json)); }catch(e){}
+      } else {
+        // no stream support or missing length — fallback to simple json()
+        const json = await res.json();
+        data[exam] = json;
+        try{ localStorage.setItem(`cbt_questions_cache_${exam}`, JSON.stringify(json)); }catch(e){}
       }
+    }catch(err){
+      // try per-exam cache
+      const cached = localStorage.getItem(`cbt_questions_cache_${exam}`);
+      if(cached){ data[exam] = JSON.parse(cached); }
+      else {
+        console.error('Could not load exam data:', err);
+        throw err;
+      }
+    }finally{
+      if(loader) hide(loader);
+      if(progressEl) try{ progressEl.value = 0; }catch(e){}
     }
   }
 
   function persistData(){
     // Persist edits to localStorage (browser-only static app)
-    try{ localStorage.setItem('cbt_questions_cache', JSON.stringify(data)); }catch(e){console.warn('Could not persist locally', e)}
+    try{
+      if(!data) return;
+      try{ localStorage.setItem('cbt_questions_cache', JSON.stringify(data)); }catch(e){}
+      Object.keys(data).forEach(exam=>{
+        try{ localStorage.setItem(`cbt_questions_cache_${exam}`, JSON.stringify(data[exam])); }catch(e){}
+      });
+    }catch(e){ console.warn('Could not persist locally', e); }
   }
 
   function startQuiz(){
@@ -318,21 +359,36 @@
   }
 
   // events
-  startBtn.addEventListener('click', ()=>{ if(!data) alert('Loading data — wait a moment and try again.'); else startQuiz(); });
+  startBtn.addEventListener('click', async ()=>{
+    const exam = examSelect.value;
+    try{
+      if(!data || !data[exam]){
+        await loadExam(exam);
+      }
+      startQuiz();
+    }catch(e){
+      alert('Could not load exam data. Check console for details.');
+    }
+  });
   nextBtn.addEventListener('click', next);
   quitBtn.addEventListener('click', ()=>{ if(confirm('Quit quiz?')) resetAll(); });
   retryBtn.addEventListener('click', ()=>{ resetAll(); });
 
   // admin events
-  adminBtn.addEventListener('click', openAdmin);
+  adminBtn.addEventListener('click', async ()=>{
+    const exam = adminExam.value;
+    try{
+      if(!data || !data[exam]) await loadExam(exam);
+      openAdmin();
+    }catch(e){ alert('Could not load data for admin.'); }
+  });
   adminCancel.addEventListener('click', closeAdmin);
   adminAdd.addEventListener('click', addAdminQuestion);
   adminSave.addEventListener('click', saveAdminQuestion);
-  adminExam.addEventListener('change', renderAdminList);
+  adminExam.addEventListener('change', async ()=>{ if(!data || !data[adminExam.value]) await loadExam(adminExam.value); renderAdminList(); });
 
   // init
-  (async function init(){
-    await loadData();
+  (function init(){
     // show subject selector once exam is chosen (subject selector is optional)
     try{
       examSelect.addEventListener('change', ()=>{ if(subjectContainer) subjectContainer.classList.remove('hidden'); });
